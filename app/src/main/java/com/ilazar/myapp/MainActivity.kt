@@ -7,25 +7,31 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.ilazar.myapp.todo.data.Item
+import com.ilazar.myapp.todo.ui.ItemDetail
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Log.d("MainActivity", "onCreate")
-            ItemDetail("Learn compose")
+            MyApp {
+                ItemDetail(Item(text = "Learn android", done = false))
+            }
         }
     }
 }
 
 @Composable
-fun ItemDetail(text: String) {
-    Log.d("ItemDetail", "recompose")
-    Text(text = text)
+fun MyApp(content: @Composable () -> Unit) {
+    Log.d("MyApp", "recompose")
+    content()
 }
 
 @Preview
 @Composable
-fun PreviewItemDetail() {
-    ItemDetail("Learn android")
+fun PreviewMyApp() {
+    MyApp {
+        ItemDetail(Item(text = "Learn android", done = false))
+    }
 }
