@@ -6,3 +6,4 @@ Change log
 04 Layout & refactoring
 05 Layout & view model
 06 State
+07 ViewModel & state

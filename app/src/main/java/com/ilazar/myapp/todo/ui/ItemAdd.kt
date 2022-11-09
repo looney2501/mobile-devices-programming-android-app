@@ -9,23 +9,17 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.tooling.preview.Preview
 
-val TAG = "ItemAdd"
-
 @Composable
-fun ItemAdd() {
+fun ItemAdd(itemsViewModel: ItemsViewModel) {
     var text by rememberSaveable { mutableStateOf("") }
-    Log.d(TAG, "recompose, text = $text")
+    Log.d("ItemAdd", "recompose, text = $text")
+
     Row {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            label = { Text("Text") }
-        )
+        TextField(value = text, onValueChange = { text = it }, label = { Text("Text") })
         Button(onClick = {
-            Log.d(TAG, "add todo");
-        }) {
-            Text("Add")
-        }
+            Log.d("ItemAdd", "add item with text = $text");
+            itemsViewModel.addItem(text)
+        }) { Text("Add") }
     }
 }
 
@@ -33,5 +27,5 @@ fun ItemAdd() {
 @Preview
 @Composable
 fun PreviewItemAdd() {
-    ItemAdd()
+    ItemAdd(ItemsViewModel())
 }
