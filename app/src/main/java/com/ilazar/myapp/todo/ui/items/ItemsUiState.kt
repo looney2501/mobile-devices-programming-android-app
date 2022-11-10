@@ -1,4 +1,4 @@
-package com.ilazar.myapp.todo.ui
+package com.ilazar.myapp.todo.ui.items
 
 import com.ilazar.myapp.todo.data.Item
 
