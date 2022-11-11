@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ilazar.myapp.core.TAG
 import com.ilazar.myapp.todo.ui.ItemScreen
 import com.ilazar.myapp.todo.ui.items.ItemsScreen
 import com.ilazar.myapp.ui.theme.MyAppTheme
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Log.d("MainActivity", "onCreate")
+            Log.d(TAG, "onCreate")
             MyApp {
                 MyAppNavHost()
             }

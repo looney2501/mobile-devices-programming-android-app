@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ilazar.myapp.todo.data.Item
 
-typealias OnItemFn = (id: String) -> Unit
+typealias OnItemFn = (id: String?) -> Unit
 
 @Composable
 fun ItemList(itemList: List<Item>, onItemClick: OnItemFn) {

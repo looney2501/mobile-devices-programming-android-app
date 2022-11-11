@@ -13,10 +13,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ilazar.myapp.R
 
 @Composable
-fun ItemsScreen(onItemClick: (id: String) -> Unit) {
+fun ItemsScreen(onItemClick: (id: String?) -> Unit) {
     Log.d("ItemsScreen", "recompose")
-    val itemsViewModel = viewModel<ItemsViewModel>()
-    val itemsUiState by itemsViewModel.uiState.collectAsState()
+    val itemsViewModel = viewModel<ItemsViewModel>(factory = ItemsViewModel.Factory)
+    val itemsUiState = itemsViewModel.uiState
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(text = stringResource(id = R.string.items)) })
@@ -29,10 +29,12 @@ fun ItemsScreen(onItemClick: (id: String) -> Unit) {
             ) { Icon(Icons.Rounded.Add, "Add") }
         }
     ) {
-        ItemList(
-            itemList = itemsUiState.items,
-            onItemClick = onItemClick,
-        )
+        when (itemsUiState) {
+            is ItemsUiState.Success ->
+                ItemList(itemList = itemsUiState.items, onItemClick = onItemClick)
+            is ItemsUiState.Loading -> Text(text = "Loading...")
+            is ItemsUiState.Error -> Text(text = "Failed to load items - ${itemsUiState.exception.message}")
+        }
     }
 }
 

@@ -1,33 +1,59 @@
 package com.ilazar.myapp.todo.ui.item
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.ilazar.myapp2.todo.data.ItemRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.ilazar.myapp.MyApplication
+import com.ilazar.myapp.core.TAG
+import com.ilazar.myapp.todo.data.Item
+import com.ilazar.myapp.todo.data.ItemRepository
+import kotlinx.coroutines.launch
 
-class ItemViewModelFactory(private val itemId: String?) : ViewModelProvider.NewInstanceFactory() {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = ItemViewModel(itemId) as T
+sealed interface ItemUiState {
+    object Idle : ItemUiState
+    object Saving : ItemUiState
+    data class Success(val item: Item) : ItemUiState
+    data class Error(val exception: Exception) : ItemUiState
 }
 
-class ItemViewModel(itemId: String?) : ViewModel() {
-    companion object {
-        val TAG = "ItemEditViewModel"
-    }
-
-    private val _uiState =
-        MutableStateFlow(ItemUiState(ItemRepository.items.filter { it.id == itemId }[0]))
-    val uiState: StateFlow<ItemUiState> = _uiState.asStateFlow()
+class ItemViewModel(private val itemId: String?, private val itemRepository: ItemRepository) :
+    ViewModel() {
+    var uiState: ItemUiState by mutableStateOf(ItemUiState.Idle)
+        private set
 
     init {
         Log.d(TAG, "init")
     }
 
-    fun updateItem(id: String, text: String) {
-        Log.d(TAG, "addItem $text")
-        val item = ItemRepository.update(id, text)
-        _uiState.value = ItemUiState(item)
+    fun createItem(text: String) {
+        Log.d(TAG, "createItem")
+        viewModelScope.launch {
+            uiState = ItemUiState.Saving
+            uiState = try {
+                ItemUiState.Success(itemRepository.save(text))
+            } catch (e: Exception) {
+                ItemUiState.Error(e)
+            }
+        }
+    }
+
+    fun createItem(itemId: String, text: String) {
+        TODO("Not yet implemented")
+    }
+
+    companion object {
+        fun Factory(itemId: String): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app =
+                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication)
+                ItemViewModel(itemId, app.container.itemRepository)
+            }
+        }
     }
 }
