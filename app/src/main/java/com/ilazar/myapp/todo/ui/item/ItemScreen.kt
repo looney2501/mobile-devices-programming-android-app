@@ -47,6 +47,12 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
                 modifier = Modifier.fillMaxSize()
             )
         }
+        if (itemUiState.isSaving) {
+            Text(text = "Saving...")
+        }
+        if (itemUiState.savingError != null) {
+            Text(text = "Failed to load items - ${itemUiState.savingError.message}")
+        }
     }
 }
 
