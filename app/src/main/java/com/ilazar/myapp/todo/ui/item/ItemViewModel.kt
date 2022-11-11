@@ -15,40 +15,47 @@ import com.ilazar.myapp.todo.data.Item
 import com.ilazar.myapp.todo.data.ItemRepository
 import kotlinx.coroutines.launch
 
-sealed interface ItemUiState {
-    object Idle : ItemUiState
-    object Saving : ItemUiState
-    data class Success(val item: Item) : ItemUiState
-    data class Error(val exception: Exception) : ItemUiState
-}
+data class ItemUiState(
+    val itemId: String? = null,
+    val item: Item,
+    val isSaving: Boolean = false,
+    val savingCompleted: Boolean = false,
+    val savingError: Exception? = null,
+)
 
 class ItemViewModel(private val itemId: String?, private val itemRepository: ItemRepository) :
     ViewModel() {
-    var uiState: ItemUiState by mutableStateOf(ItemUiState.Idle)
-        private set
-
     init {
         Log.d(TAG, "init")
     }
 
-    fun createItem(text: String) {
-        Log.d(TAG, "createItem")
+    var uiState: ItemUiState by mutableStateOf(
+        ItemUiState(item = itemRepository.getItem(itemId)?.copy() ?: Item())
+    )
+        private set
+
+    fun saveOrUpdateItem(text: String) {
         viewModelScope.launch {
-            uiState = ItemUiState.Saving
-            uiState = try {
-                ItemUiState.Success(itemRepository.save(text))
+            Log.d(TAG, "saveOrUpdateItem...");
+            try {
+                uiState = uiState.copy(isSaving = true, savingError = null)
+                val item = uiState.item.copy(text = text)
+                if (itemId == null) {
+                    itemRepository.save(item)
+                } else {
+                    itemRepository.update(item)
+                }
+                Log.d(TAG, "saveOrUpdateItem succeeeded");
+                uiState = uiState.copy(isSaving = false, savingCompleted = true)
             } catch (e: Exception) {
-                ItemUiState.Error(e)
+                Log.d(TAG, "saveOrUpdateItem failed");
+                uiState = uiState.copy(isSaving = false, savingError = e)
             }
         }
     }
 
-    fun createItem(itemId: String, text: String) {
-        TODO("Not yet implemented")
-    }
-
     companion object {
-        fun Factory(itemId: String): ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(itemId: String?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app =
                     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication)
@@ -57,3 +64,4 @@ class ItemViewModel(private val itemId: String?, private val itemRepository: Ite
         }
     }
 }
+
