@@ -13,7 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ilazar.myapp.R
 
 @Composable
-fun ItemsScreen(onItemClick: (id: String?) -> Unit) {
+fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit) {
     Log.d("ItemsScreen", "recompose")
     val itemsViewModel = viewModel<ItemsViewModel>(factory = ItemsViewModel.Factory)
     val itemsUiState = itemsViewModel.uiState
@@ -24,7 +24,8 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    Log.d("ItemsScreen", "todo")
+                    Log.d("ItemsScreen", "add")
+                    onAddItem()
                 },
             ) { Icon(Icons.Rounded.Add, "Add") }
         }
@@ -32,7 +33,7 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit) {
         when (itemsUiState) {
             is ItemsUiState.Success ->
                 ItemList(itemList = itemsUiState.items, onItemClick = onItemClick)
-            is ItemsUiState.Loading -> Text(text = "Loading...")
+            is ItemsUiState.Loading -> CircularProgressIndicator()
             is ItemsUiState.Error -> Text(text = "Failed to load items - ${itemsUiState.exception.message}")
         }
     }
@@ -41,5 +42,5 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit) {
 @Preview
 @Composable
 fun PreviewItemsScreen() {
-    ItemsScreen(onItemClick = {})
+    ItemsScreen(onItemClick = {}, onAddItem = {})
 }

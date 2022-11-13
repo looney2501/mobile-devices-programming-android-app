@@ -1,11 +1,14 @@
 package com.ilazar.myapp.todo.ui
 
 import android.util.Log
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,7 +51,10 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
             )
         }
         if (itemUiState.isSaving) {
-            Text(text = "Saving...")
+            Column(
+                Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) { LinearProgressIndicator() }
         }
         if (itemUiState.savingError != null) {
             Text(text = "Failed to load items - ${itemUiState.savingError.message}")

@@ -28,6 +28,10 @@ fun MyAppNavHost() {
                 onItemClick = { itemId ->
                     Log.d("MyAppNavHost", "navigate to item $itemId")
                     navController.navigate("$itemsRoute/$itemId")
+                },
+                onAddItem = {
+                    Log.d("MyAppNavHost", "navigate to new item")
+                    navController.navigate("$itemsRoute-new")
                 }
             )
         }
@@ -41,10 +45,7 @@ fun MyAppNavHost() {
                 onClose = { onCloseItem() }
             )
         }
-        composable(
-            route = "$itemsRoute-new",
-            arguments = listOf(navArgument("id") { type = NavType.StringType })
-        )
+        composable(route = "$itemsRoute-new")
         {
             ItemScreen(
                 itemId = null,

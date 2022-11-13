@@ -5,7 +5,7 @@ import com.ilazar.myapp.core.TAG
 import com.ilazar.myapp.todo.data.remote.ItemService
 
 class ItemRepository(private val itemService: ItemService) {
-    private var cachedItems: List<Item>? = null
+    private var cachedItems: MutableList<Item> = listOf<Item>().toMutableList()
 
     init {
         Log.d(TAG, "init")
@@ -14,8 +14,8 @@ class ItemRepository(private val itemService: ItemService) {
     suspend fun loadAll(): List<Item> {
         Log.d(TAG, "loadAll")
         val items = itemService.find();
-        cachedItems = items
-        return items
+        cachedItems = items.toMutableList()
+        return cachedItems as List<Item>
     }
 
     suspend fun load(itemId: String?): Item {
@@ -25,12 +25,19 @@ class ItemRepository(private val itemService: ItemService) {
 
     suspend fun update(item: Item): Item {
         Log.d(TAG, "update $item")
-        return itemService.update(item.id, item)
+        val updatedItem = itemService.update(item.id, item)
+        val index = cachedItems.indexOfFirst { it.id == item.id }
+        if (index != -1) {
+            cachedItems.set(index, updatedItem)
+        }
+        return updatedItem
     }
 
     suspend fun save(item: Item): Item {
         Log.d(TAG, "save $item")
-        return itemService.create(item)
+        val createdItem = itemService.create(item)
+        cachedItems.add(0, createdItem);
+        return createdItem
     }
 
     fun getItem(itemId: String?): Item? = cachedItems?.find { it.id == itemId }
