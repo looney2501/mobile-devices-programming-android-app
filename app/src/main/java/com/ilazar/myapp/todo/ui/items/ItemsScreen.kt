@@ -5,8 +5,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,7 +32,7 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit) {
             is ItemsUiState.Success ->
                 ItemList(itemList = itemsUiState.items, onItemClick = onItemClick)
             is ItemsUiState.Loading -> CircularProgressIndicator()
-            is ItemsUiState.Error -> Text(text = "Failed to load items - ${itemsUiState.exception?.message}")
+            is ItemsUiState.Error -> Text(text = "Failed to load items - $it, ${itemsUiState.exception?.message}")
         }
     }
 }
