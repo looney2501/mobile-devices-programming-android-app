@@ -20,13 +20,25 @@ import com.ilazar.myapp.todo.ui.item.ItemViewModel
 fun ItemScreen(itemId: String?, onClose: () -> Unit) {
     val itemViewModel = viewModel<ItemViewModel>(factory = ItemViewModel.Factory(itemId))
     val itemUiState = itemViewModel.uiState
-    var text by rememberSaveable { mutableStateOf(itemUiState.item.text) }
+    var text by rememberSaveable { mutableStateOf(itemUiState.item?.text ?: "") }
     Log.d("ItemScreen", "recompose, text = $text")
 
     LaunchedEffect(itemUiState.savingCompleted) {
         Log.d("ItemScreen", "Saving completed = ${itemUiState.savingCompleted}");
         if (itemUiState.savingCompleted) {
             onClose();
+        }
+    }
+
+    var textInitialized by remember { mutableStateOf(itemId == null) }
+    LaunchedEffect(itemId, itemUiState.isLoading) {
+        Log.d("ItemScreen", "Saving completed = ${itemUiState.savingCompleted}");
+        if (textInitialized) {
+            return@LaunchedEffect
+        }
+        if (itemUiState.item != null && !itemUiState.isLoading) {
+            text = itemUiState.item.text
+            textInitialized = true
         }
     }
 
@@ -43,6 +55,13 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
             )
         }
     ) {
+        if (itemUiState.isLoading) {
+            CircularProgressIndicator()
+            return@Scaffold
+        }
+        if (itemUiState.loadingError != null) {
+            Text(text = "Failed to load item - ${itemUiState.loadingError.message}")
+        }
         Row {
             TextField(
                 value = text,
@@ -57,7 +76,7 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
             ) { LinearProgressIndicator() }
         }
         if (itemUiState.savingError != null) {
-            Text(text = "Failed to load items - ${itemUiState.savingError.message}")
+            Text(text = "Failed to save item - ${itemUiState.savingError.message}")
         }
     }
 }

@@ -13,7 +13,7 @@ import com.ilazar.myapp.MyApplication
 import com.ilazar.myapp.core.TAG
 import com.ilazar.myapp.todo.data.Item
 import com.ilazar.myapp.todo.data.ItemRepository
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,25 +30,14 @@ class ItemsViewModel(private val itemRepository: ItemRepository) : ViewModel() {
     init {
         Log.d(TAG, "init")
         loadItems()
-        getItemEvents()
-    }
-
-    fun getItemEvents() {
-        viewModelScope.launch {
-            itemRepository.listenSocketEvents()
-        }
-//        viewModelScope.launch {
-//            itemRepository.getItemEvents().collect {
-//                Log.d(TAG, "Item event collected ${currentCoroutineContext().javaClass} $it")
-//            }
-//        }
     }
 
     fun loadItems() {
         Log.d(TAG, "loadItems...")
         viewModelScope.launch {
             uiState = ItemsUiState.Loading
-            itemRepository.loadAll().stateIn(scope = viewModelScope).collect { result ->
+            itemRepository.refresh()
+            itemRepository.itemStream.stateIn(scope = viewModelScope).collectLatest { result ->
                 Log.d(TAG, "loadItems collect")
                 uiState =
                     if (result.isSuccess)

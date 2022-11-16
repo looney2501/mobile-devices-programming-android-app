@@ -16,36 +16,59 @@ import com.ilazar.myapp.todo.data.ItemRepository
 import kotlinx.coroutines.launch
 
 data class ItemUiState(
+    val isLoading: Boolean = false,
+    val loadingError: Throwable? = null,
     val itemId: String? = null,
-    val item: Item,
+    val item: Item? = null,
     val isSaving: Boolean = false,
     val savingCompleted: Boolean = false,
-    val savingError: Exception? = null,
+    val savingError: Throwable? = null,
 )
 
 class ItemViewModel(private val itemId: String?, private val itemRepository: ItemRepository) :
     ViewModel() {
+    var uiState: ItemUiState by mutableStateOf(ItemUiState(isLoading = true))
+        private set
+
     init {
         Log.d(TAG, "init")
+        if (itemId != null) {
+            loadItem()
+        } else {
+            uiState = uiState.copy(item = Item(), isLoading = false)
+        }
     }
 
-    var uiState: ItemUiState by mutableStateOf(
-        ItemUiState(item = itemRepository.getItem(itemId)?.copy() ?: Item())
-    )
-        private set
+    fun loadItem() {
+        viewModelScope.launch {
+            itemRepository.itemStream.collect { result ->
+                if (!uiState.isLoading) {
+                    return@collect
+                }
+                if (result.isSuccess) {
+                    val items = result.getOrNull()
+                    val item = items?.find { it.id == itemId }
+                    uiState = uiState.copy(item = item, isLoading = false)
+                } else {
+                    uiState =
+                        uiState.copy(loadingError = result.exceptionOrNull(), isLoading = false)
+                }
+            }
+        }
+    }
 
     fun saveOrUpdateItem(text: String) {
         viewModelScope.launch {
             Log.d(TAG, "saveOrUpdateItem...");
             try {
                 uiState = uiState.copy(isSaving = true, savingError = null)
-                val item = uiState.item.copy(text = text)
+                val item = uiState.item?.copy(text = text)
                 if (itemId == null) {
-                    itemRepository.save(item)
+                    itemRepository.save(item!!)
                 } else {
-                    itemRepository.update(item)
+                    itemRepository.update(item!!)
                 }
-                Log.d(TAG, "saveOrUpdateItem succeeeded");
+                Log.d(TAG, "saveOrUpdateItem succeeded");
                 uiState = uiState.copy(isSaving = false, savingCompleted = true)
             } catch (e: Exception) {
                 Log.d(TAG, "saveOrUpdateItem failed");

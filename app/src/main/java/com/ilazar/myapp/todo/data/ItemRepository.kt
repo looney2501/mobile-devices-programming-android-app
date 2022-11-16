@@ -1,85 +1,109 @@
 package com.ilazar.myapp.todo.data
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import com.ilazar.myapp.core.TAG
+import com.ilazar.myapp.todo.data.remote.ItemEvent
 import com.ilazar.myapp.todo.data.remote.ItemService
 import com.ilazar.myapp.todo.data.remote.ItemWsClient
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
-import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 
 class ItemRepository(private val itemService: ItemService, private val itemWsClient: ItemWsClient) {
-    private var cachedItems: MutableList<Item> = listOf<Item>().toMutableList()
+    private var items: List<Item> = listOf();
+
+    private var itemsFlow: MutableSharedFlow<Result<List<Item>>> = MutableSharedFlow(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val itemStream: SharedFlow<Result<List<Item>>> = itemsFlow
 
     init {
         Log.d(TAG, "init")
     }
 
-    suspend fun listenSocketEvents() {
+    suspend fun refresh() {
+        Log.d(TAG, "refresh started")
+        try {
+            items = itemService.find()
+            Log.d(TAG, "refresh succeeded")
+            itemsFlow.emit(Result.success(items))
+        } catch (e: Exception) {
+            Log.w(TAG, "refresh failed", e)
+            itemsFlow.emit(Result.failure(e))
+        }
+    }
+
+    suspend fun openWsClient() {
+        Log.d(TAG, "openWsClient")
         withContext(Dispatchers.IO) {
             getItemEvents().collect {
-                Log.d(TAG, "Item event collected ${currentCoroutineContext().javaClass} $it")
+                Log.d(TAG, "Item event collected $it")
+                if (it.isSuccess) {
+                    val itemEvent = it.getOrNull();
+                    when (itemEvent?.event) {
+                        "created" -> handleItemCreated(itemEvent.payload.item)
+                        "updated" -> handleItemUpdated(itemEvent.payload.item)
+                        "deleted" -> handleItemDeleted(itemEvent.payload.item)
+                    }
+                }
             }
         }
     }
 
-    suspend fun loadAll(): Flow<Result<List<Item>>> = flow {
-        Log.d(TAG, "loadAll started")
-        if (cachedItems.size > 0) {
-            Log.d(TAG, "loadAll emit cached items")
-            emit(Result.success(cachedItems as List<Item>))
+    suspend fun closeWsClient() {
+        Log.d(TAG, "closeWsClient")
+        withContext(Dispatchers.IO) {
+            itemWsClient.closeSocket()
         }
-        while (coroutineContext.isActive) {
-            try {
-                val items = itemService.find()
-                cachedItems = items.toMutableList()
-                Log.d(TAG, "loadAll emit remote items")
-                emit(Result.success(cachedItems as List<Item>))
-            } catch (e: Exception) {
-                emit(Result.failure(e))
-            }
-            delay(500000)
-        }
-        Log.d(TAG, "loadAll completed")
     }
 
-    fun getItemEvents(): Flow<Result<String>> = callbackFlow {
+    suspend fun getItemEvents(): Flow<Result<ItemEvent>> = callbackFlow {
         Log.d(TAG, "getItemEvents started")
         itemWsClient.openSocket(
             onEvent = {
                 Log.d(TAG, "onEvent $it")
-                trySend(Result.success(it))
+                if (it != null) {
+                    Log.d(TAG, "onEvent trySend $it")
+                    trySend(Result.success(it))
+                }
             },
             onClosed = { close() },
             onFailure = { close() });
         awaitClose { itemWsClient.closeSocket() }
     }
 
-    suspend fun load(itemId: String?): Item {
-        Log.d(TAG, "load $itemId")
-        return itemService.read(itemId)
-    }
-
     suspend fun update(item: Item): Item {
-        Log.d(TAG, "update $item")
+        Log.d(TAG, "update $item...")
         val updatedItem = itemService.update(item.id, item)
-        val index = cachedItems.indexOfFirst { it.id == item.id }
-        if (index != -1) {
-            cachedItems.set(index, updatedItem)
-        }
+        Log.d(TAG, "update $item succeeded")
+        handleItemUpdated(updatedItem)
         return updatedItem
     }
 
     suspend fun save(item: Item): Item {
-        Log.d(TAG, "save $item")
+        Log.d(TAG, "save $item...")
         val createdItem = itemService.create(item)
-        cachedItems.add(0, createdItem);
+        Log.d(TAG, "save $item succeeded")
+        handleItemCreated(createdItem)
         return createdItem
     }
 
-    fun getItem(itemId: String?): Item? = cachedItems.find { it.id == itemId }
+    private suspend fun handleItemDeleted(item: Item) {
+        Log.d(TAG, "handleItemDeleted - todo $item")
+    }
+
+    private suspend fun handleItemUpdated(item: Item) {
+        Log.d(TAG, "handleItemUpdated...")
+        items = items.map { if (it.id == item.id) item else it }
+        itemsFlow.emit(Result.success(items))
+    }
+
+    private suspend fun handleItemCreated(item: Item) {
+        Log.d(TAG, "handleItemCreated...")
+        items = items.plus(item)
+        itemsFlow.emit(Result.success(items))
+    }
 }
