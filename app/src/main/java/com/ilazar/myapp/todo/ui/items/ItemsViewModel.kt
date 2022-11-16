@@ -37,13 +37,9 @@ class ItemsViewModel(private val itemRepository: ItemRepository) : ViewModel() {
         viewModelScope.launch {
             uiState = ItemsUiState.Loading
             itemRepository.refresh()
-            itemRepository.itemStream.stateIn(scope = viewModelScope).collectLatest { result ->
+            itemRepository.itemStream.collect {
                 Log.d(TAG, "loadItems collect")
-                uiState =
-                    if (result.isSuccess)
-                        ItemsUiState.Success(result.getOrDefault(listOf()))
-                    else
-                        ItemsUiState.Error(result.exceptionOrNull())
+                uiState = ItemsUiState.Success(it)
             }
         }
     }

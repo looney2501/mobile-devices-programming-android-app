@@ -2,23 +2,22 @@ package com.ilazar.myapp.todo.data
 
 import android.util.Log
 import com.ilazar.myapp.core.TAG
+import com.ilazar.myapp.todo.data.local.ItemDao
 import com.ilazar.myapp.todo.data.remote.ItemEvent
 import com.ilazar.myapp.todo.data.remote.ItemService
 import com.ilazar.myapp.todo.data.remote.ItemWsClient
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 
-class ItemRepository(private val itemService: ItemService, private val itemWsClient: ItemWsClient) {
-    private var items: List<Item> = listOf();
-
-    private var itemsFlow: MutableSharedFlow<Result<List<Item>>> = MutableSharedFlow(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    val itemStream: SharedFlow<Result<List<Item>>> = itemsFlow
+class ItemRepository(
+    private val itemService: ItemService,
+    private val itemWsClient: ItemWsClient,
+    private val itemDao: ItemDao
+) {
+    val itemStream by lazy { itemDao.getAll() }
 
     init {
         Log.d(TAG, "init")
@@ -27,12 +26,12 @@ class ItemRepository(private val itemService: ItemService, private val itemWsCli
     suspend fun refresh() {
         Log.d(TAG, "refresh started")
         try {
-            items = itemService.find()
+            val items = itemService.find()
+            itemDao.deleteAll()
+            items.forEach { itemDao.insert(it) }
             Log.d(TAG, "refresh succeeded")
-            itemsFlow.emit(Result.success(items))
         } catch (e: Exception) {
             Log.w(TAG, "refresh failed", e)
-            itemsFlow.emit(Result.failure(e))
         }
     }
 
@@ -66,7 +65,6 @@ class ItemRepository(private val itemService: ItemService, private val itemWsCli
             onEvent = {
                 Log.d(TAG, "onEvent $it")
                 if (it != null) {
-                    Log.d(TAG, "onEvent trySend $it")
                     trySend(Result.success(it))
                 }
             },
@@ -97,13 +95,11 @@ class ItemRepository(private val itemService: ItemService, private val itemWsCli
 
     private suspend fun handleItemUpdated(item: Item) {
         Log.d(TAG, "handleItemUpdated...")
-        items = items.map { if (it.id == item.id) item else it }
-        itemsFlow.emit(Result.success(items))
+        itemDao.update(item)
     }
 
     private suspend fun handleItemCreated(item: Item) {
         Log.d(TAG, "handleItemCreated...")
-        items = items.plus(item)
-        itemsFlow.emit(Result.success(items))
+        itemDao.insert(item)
     }
 }

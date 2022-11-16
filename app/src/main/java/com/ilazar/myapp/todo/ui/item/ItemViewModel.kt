@@ -41,18 +41,12 @@ class ItemViewModel(private val itemId: String?, private val itemRepository: Ite
 
     fun loadItem() {
         viewModelScope.launch {
-            itemRepository.itemStream.collect { result ->
+            itemRepository.itemStream.collect { items ->
                 if (!uiState.isLoading) {
                     return@collect
                 }
-                if (result.isSuccess) {
-                    val items = result.getOrNull()
-                    val item = items?.find { it.id == itemId }
-                    uiState = uiState.copy(item = item, isLoading = false)
-                } else {
-                    uiState =
-                        uiState.copy(loadingError = result.exceptionOrNull(), isLoading = false)
-                }
+                val item = items.find { it.id == itemId }
+                uiState = uiState.copy(item = item, isLoading = false)
             }
         }
     }
