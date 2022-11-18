@@ -42,10 +42,10 @@ class ItemRepository(
                 Log.d(TAG, "Item event collected $it")
                 if (it.isSuccess) {
                     val itemEvent = it.getOrNull();
-                    when (itemEvent?.event) {
-                        "created" -> handleItemCreated(itemEvent.payload.item)
-                        "updated" -> handleItemUpdated(itemEvent.payload.item)
-                        "deleted" -> handleItemDeleted(itemEvent.payload.item)
+                    when (itemEvent?.type) {
+                        "created" -> handleItemCreated(itemEvent.payload)
+                        "updated" -> handleItemUpdated(itemEvent.payload)
+                        "deleted" -> handleItemDeleted(itemEvent.payload)
                     }
                 }
             }
