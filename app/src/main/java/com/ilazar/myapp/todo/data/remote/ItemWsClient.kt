@@ -1,7 +1,7 @@
 package com.ilazar.myapp.todo.data.remote
 
 import android.util.Log
-import com.ilazar.myapp.core.Api
+import com.ilazar.myapp.core.data.remote.Api
 import com.ilazar.myapp.core.TAG
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi

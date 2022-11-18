@@ -45,7 +45,7 @@ class ItemViewModel(private val itemId: String?, private val itemRepository: Ite
                 if (!uiState.isLoading) {
                     return@collect
                 }
-                val item = items.find { it.id == itemId }
+                val item = items.find { it._id == itemId }
                 uiState = uiState.copy(item = item, isLoading = false)
             }
         }

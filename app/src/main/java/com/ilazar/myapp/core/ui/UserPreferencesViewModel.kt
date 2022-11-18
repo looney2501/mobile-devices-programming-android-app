@@ -1,4 +1,4 @@
-package com.ilazar.myapp.todo.ui.items
+package com.ilazar.myapp.core.ui
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -11,34 +11,32 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ilazar.myapp.MyApplication
 import com.ilazar.myapp.core.TAG
-import com.ilazar.myapp.todo.data.Item
-import com.ilazar.myapp.todo.data.ItemRepository
+import com.ilazar.myapp.core.data.UserPreferences
+import com.ilazar.myapp.core.data.UserPreferencesRepository
 import kotlinx.coroutines.launch
 
-sealed interface ItemsUiState {
-    data class Success(val items: List<Item>) : ItemsUiState
-    data class Error(val exception: Throwable?) : ItemsUiState
-    object Loading : ItemsUiState
-}
-
-class ItemsViewModel(private val itemRepository: ItemRepository) : ViewModel() {
-    var uiState: ItemsUiState by mutableStateOf(ItemsUiState.Loading)
+class UserPreferencesViewModel(private val userPreferencesRepository: UserPreferencesRepository) :
+    ViewModel() {
+    var uiState: UserPreferences by mutableStateOf(UserPreferences())
         private set
 
     init {
         Log.d(TAG, "init")
-        loadItems()
+        load()
     }
 
-    fun loadItems() {
-        Log.d(TAG, "loadItems...")
+    fun load() {
         viewModelScope.launch {
-            uiState = ItemsUiState.Loading
-            itemRepository.refresh()
-            itemRepository.itemStream.collect {
-                Log.d(TAG, "loadItems collect")
-                uiState = ItemsUiState.Success(it)
+            userPreferencesRepository.userPreferencesStream.collect { userPreferences ->
+                uiState = userPreferences
             }
+        }
+    }
+
+    fun save(userPreferences: UserPreferences) {
+        viewModelScope.launch {
+            Log.d(TAG, "saveUserPreferences...");
+            userPreferencesRepository.save(userPreferences)
         }
     }
 
@@ -47,8 +45,9 @@ class ItemsViewModel(private val itemRepository: ItemRepository) : ViewModel() {
             initializer {
                 val app =
                     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MyApplication)
-                ItemsViewModel(app.container.itemRepository)
+                UserPreferencesViewModel(app.container.userPreferencesRepository)
             }
         }
     }
 }
+

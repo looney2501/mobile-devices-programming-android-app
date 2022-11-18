@@ -75,7 +75,7 @@ class ItemRepository(
 
     suspend fun update(item: Item): Item {
         Log.d(TAG, "update $item...")
-        val updatedItem = itemService.update(item.id, item)
+        val updatedItem = itemService.update(item._id, item)
         Log.d(TAG, "update $item succeeded")
         handleItemUpdated(updatedItem)
         return updatedItem
@@ -101,5 +101,9 @@ class ItemRepository(
     private suspend fun handleItemCreated(item: Item) {
         Log.d(TAG, "handleItemCreated...")
         itemDao.insert(item)
+    }
+
+    suspend fun deleteAll() {
+        itemDao.deleteAll()
     }
 }

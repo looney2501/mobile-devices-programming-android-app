@@ -11,13 +11,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ilazar.myapp.R
 
 @Composable
-fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit) {
+fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit, onLogout: () -> Unit) {
     Log.d("ItemsScreen", "recompose")
     val itemsViewModel = viewModel<ItemsViewModel>(factory = ItemsViewModel.Factory)
     val itemsUiState = itemsViewModel.uiState
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = stringResource(id = R.string.items)) })
+            TopAppBar(
+                title = { Text(text = stringResource(id = R.string.items)) },
+                actions = {
+                    Button(onClick = onLogout) { Text("Logout") }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -40,5 +45,5 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit) {
 @Preview
 @Composable
 fun PreviewItemsScreen() {
-    ItemsScreen(onItemClick = {}, onAddItem = {})
+    ItemsScreen(onItemClick = {}, onAddItem = {}, onLogout = {})
 }

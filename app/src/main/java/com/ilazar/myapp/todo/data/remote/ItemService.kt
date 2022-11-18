@@ -4,17 +4,17 @@ import com.ilazar.myapp.todo.data.Item
 import retrofit2.http.*
 
 interface ItemService {
-    @GET("/item")
+    @GET("/api/item")
     suspend fun find(): List<Item>
 
-    @GET("/item/{id}")
+    @GET("/api/item/{id}")
     suspend fun read(@Path("id") itemId: String?): Item;
 
     @Headers("Content-Type: application/json")
-    @POST("/item")
+    @POST("/api/item")
     suspend fun create(@Body item: Item): Item
 
     @Headers("Content-Type: application/json")
-    @PUT("/item/{id}")
+    @PUT("/api/item/{id}")
     suspend fun update(@Path("id") itemId: String?, @Body item: Item): Item
 }
