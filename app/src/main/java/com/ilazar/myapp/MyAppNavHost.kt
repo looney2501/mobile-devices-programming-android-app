@@ -86,6 +86,7 @@ fun MyAppNavHost() {
         if (userPreferencesUiState.token.isNotEmpty()) {
             Log.d("MyAppNavHost", "Lauched effect navigate to items")
             Api.tokenInterceptor.token = userPreferencesUiState.token
+            myAppViewModel.setToken(userPreferencesUiState.token)
             navController.navigate(itemsRoute) {
                 popUpTo(0)
             }

@@ -29,6 +29,10 @@ class MyAppViewModel(
         }
     }
 
+    fun setToken(token: String) {
+        itemRepository.setToken(token)
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

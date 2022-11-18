@@ -35,6 +35,19 @@ class ItemWsClient(private val okHttpClient: OkHttpClient) {
         webSocket.close(1000, "");
     }
 
+    fun authorize(token: String) {
+        val auth = """
+            {
+              "type":"authorization",
+              "payload":{
+                "token": "$token"
+              }
+            }
+        """.trimIndent()
+        Log.d(TAG, "auth $auth")
+        webSocket.send(auth)
+    }
+
     inner class ItemWebSocketListener(
         private val onEvent: (itemEvent: ItemEvent?) -> Unit,
         private val onClosed: () -> Unit,

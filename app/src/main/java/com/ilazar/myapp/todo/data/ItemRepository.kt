@@ -106,4 +106,8 @@ class ItemRepository(
     suspend fun deleteAll() {
         itemDao.deleteAll()
     }
+
+    fun setToken(token: String) {
+        itemWsClient.authorize(token)
+    }
 }
