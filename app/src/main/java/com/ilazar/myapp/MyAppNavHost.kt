@@ -12,10 +12,10 @@ import androidx.navigation.navArgument
 import com.ilazar.myapp.auth.LoginScreen
 import com.ilazar.myapp.core.data.remote.Api
 import com.ilazar.myapp.core.ui.UserPreferencesViewModel
-import com.ilazar.myapp.todo.ui.ItemScreen
-import com.ilazar.myapp.todo.ui.items.ItemsScreen
+import com.ilazar.myapp.hotel.ui.ItemScreen
+import com.ilazar.myapp.hotel.ui.items.ItemsScreen
 
-val itemsRoute = "items"
+val hotelsRoute = "hotels"
 val authRoute = "auth"
 
 @Composable
@@ -34,15 +34,15 @@ fun MyAppNavHost() {
         navController = navController,
         startDestination = authRoute
     ) {
-        composable(itemsRoute) {
+        composable(hotelsRoute) {
             ItemsScreen(
                 onItemClick = { itemId ->
-                    Log.d("MyAppNavHost", "navigate to item $itemId")
-                    navController.navigate("$itemsRoute/$itemId")
+                    Log.d("MyAppNavHost", "navigate to hotel $itemId end")
+                    navController.navigate("$hotelsRoute/$itemId")
                 },
                 onAddItem = {
-                    Log.d("MyAppNavHost", "navigate to new item")
-                    navController.navigate("$itemsRoute-new")
+                    Log.d("MyAppNavHost", "navigate to new hotel")
+                    navController.navigate("$hotelsRoute-new")
                 },
                 onLogout = {
                     Log.d("MyAppNavHost", "logout")
@@ -55,7 +55,7 @@ fun MyAppNavHost() {
             )
         }
         composable(
-            route = "$itemsRoute/{id}",
+            route = "$hotelsRoute/{id}",
             arguments = listOf(navArgument("id") { type = NavType.StringType })
         )
         {
@@ -64,7 +64,7 @@ fun MyAppNavHost() {
                 onClose = { onCloseItem() }
             )
         }
-        composable(route = "$itemsRoute-new")
+        composable(route = "$hotelsRoute-new")
         {
             ItemScreen(
                 itemId = null,
@@ -76,7 +76,7 @@ fun MyAppNavHost() {
             LoginScreen(
                 onClose = {
                     Log.d("MyAppNavHost", "navigate to list")
-                    navController.navigate(itemsRoute)
+                    navController.navigate(hotelsRoute)
                 }
             )
         }
@@ -84,10 +84,10 @@ fun MyAppNavHost() {
 
     LaunchedEffect(userPreferencesUiState.token) {
         if (userPreferencesUiState.token.isNotEmpty()) {
-            Log.d("MyAppNavHost", "Lauched effect navigate to items")
+            Log.d("MyAppNavHost", "Lauched effect navigate to hotels")
             Api.tokenInterceptor.token = userPreferencesUiState.token
             myAppViewModel.setToken(userPreferencesUiState.token)
-            navController.navigate(itemsRoute) {
+            navController.navigate(hotelsRoute) {
                 popUpTo(0)
             }
         }

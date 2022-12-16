@@ -8,9 +8,9 @@ import com.ilazar.myapp.auth.data.AuthRepository
 import com.ilazar.myapp.auth.data.remote.AuthDataSource
 import com.ilazar.myapp.core.data.UserPreferencesRepository
 import com.ilazar.myapp.core.data.remote.Api
-import com.ilazar.myapp.todo.data.ItemRepository
-import com.ilazar.myapp.todo.data.remote.ItemService
-import com.ilazar.myapp.todo.data.remote.ItemWsClient
+import com.ilazar.myapp.hotel.data.ItemRepository
+import com.ilazar.myapp.hotel.data.remote.ItemService
+import com.ilazar.myapp.hotel.data.remote.ItemWsClient
 
 val Context.userPreferencesDataStore by preferencesDataStore(
     name = "user_preferences"

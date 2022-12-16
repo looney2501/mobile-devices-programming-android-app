@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ilazar.myapp.core.TAG
 import com.ilazar.myapp.core.data.UserPreferences
 import com.ilazar.myapp.core.data.UserPreferencesRepository
-import com.ilazar.myapp.todo.data.ItemRepository
+import com.ilazar.myapp.hotel.data.ItemRepository
 import kotlinx.coroutines.launch
 
 class MyAppViewModel(
