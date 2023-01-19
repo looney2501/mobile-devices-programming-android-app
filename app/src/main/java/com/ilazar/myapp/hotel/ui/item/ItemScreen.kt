@@ -7,12 +7,15 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ilazar.myapp.R
 import com.ilazar.myapp.hotel.ui.item.ItemViewModel
+import com.ilazar.myapp.utils.createNotificationChannel
+import com.ilazar.myapp.utils.showSimpleNotification
 
 @Composable
 fun ItemScreen(itemId: String?, onClose: () -> Unit) {
@@ -20,13 +23,31 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
     val itemUiState = itemViewModel.uiState
     var name by rememberSaveable { mutableStateOf(itemUiState.item?.name ?: "") }
     var capacity by rememberSaveable { mutableStateOf(itemUiState.item?.capacity ?: 0) }
-    var dateRegistered by rememberSaveable { mutableStateOf(itemUiState.item?.dateRegistered ?: "") }
+    var dateRegistered by rememberSaveable {
+        mutableStateOf(
+            itemUiState.item?.dateRegistered ?: ""
+        )
+    }
     var isAvailable by rememberSaveable { mutableStateOf(itemUiState.item?.isAvailable ?: false) }
+    val context = LocalContext.current
+    val channelId = "MyTestChannel"
+    val notificationId = 0
     Log.d("ItemScreen", "recompose, text = $name")
+
+    LaunchedEffect(Unit) {
+        createNotificationChannel(channelId, context)
+    }
 
     LaunchedEffect(itemUiState.savingCompleted) {
         Log.d("ItemScreen", "Saving completed = ${itemUiState.savingCompleted}");
         if (itemUiState.savingCompleted) {
+            showSimpleNotification(
+                context,
+                channelId,
+                notificationId,
+                "New hotel",
+                "You have just created a new hotel: $name"
+            )
             onClose();
         }
     }
